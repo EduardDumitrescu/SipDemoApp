@@ -65,7 +65,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     continue
                 } catch (e: Throwable) {
-                    viewModel.addLog("ERROR, WorkerThread on run()intern ${e.message}")
+                    //TODO research why this happens
+                    //viewModel.addLog("ERROR, WorkerThread on run()intern ${e.message}")
                 }
                 if (!terminateNotifThread) {
                     Thread.sleep(10)
@@ -83,10 +84,10 @@ class MainActivity : AppCompatActivity() {
                 notarray = receivedNotif.split("\r\n").toTypedArray()
                 if (notarray.size < 1) return
                 for (i in notarray.indices) {
-                    if (notarray[i] != null && notarray!![i]!!.length > 0) {
-                        if (notarray[i]!!.indexOf("WPNOTIFICATION,") == 0) notarray!![i] = notarray!![i]!!
+                    if (notarray[i] != null && notarray[i]!!.length > 0) {
+                        if (notarray[i]!!.indexOf("WPNOTIFICATION,") == 0) notarray[i] = notarray[i]!!
                             .substring(15) //remove the WPNOTIFICATION, prefix
-                        ProcessNotifications(notarray!![i])
+                        ProcessNotifications(notarray[i])
                     }
                 }
 
@@ -187,10 +188,10 @@ class MainActivity : AppCompatActivity() {
             val line: Int = params[1].toIntOrNull() ?: 0
             //if(line != -1) return;  //we handle only the global state. See the "Multiple lines" FAQ point in the documentation if you wish to handle individual lines explicitely
             val endpointtype: Int = params[5].toIntOrNull() ?: 0
-            if (endpointtype == 2) //incoming call
+            if (endpointtype == 2 && params[2] == "Ringing") //incoming call
             {
                 viewModel.addLog("Incoming call from " + params[3] + " " + params[6])
-                viewModel.sipCLient.Accept(-1) //auto accept incoming call. you might disaplay ACCEPT / REJECT buttons instead
+                viewModel.setOpposingCaller(params[3] + " " + params[6])
             }
         } else if (params[0] == "POPUP") {
             Toast.makeText(this, notification, Toast.LENGTH_LONG).show()

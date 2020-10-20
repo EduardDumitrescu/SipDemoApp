@@ -1,31 +1,39 @@
 package com.example.sipdemoapp
 
+import android.provider.MediaStore
+import android.widget.FrameLayout
 import androidx.compose.animation.animate
-import androidx.compose.foundation.Icon
-import androidx.compose.foundation.ScrollableColumn
-import androidx.compose.foundation.Text
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.ui.tooling.preview.Preview
 import com.example.sipdemoapp.ui.SipDemoAppTheme
 import com.example.sipdemoapp.ui.darkGreen
 import com.example.sipdemoapp.ui.darkRed
 
 @Composable
-fun MainScreen(viewModel: MainViewModel = MainViewModel(), requestMic: () -> Unit = {}) {
+fun MainScreen(viewModel: MainViewModel = MainViewModel(), requestMic: () -> Unit = {}, requestVideo: () -> Unit = {}) {
+    val act = ContextAmbient.current as MainActivity
+
     SipDemoAppTheme {
         Scaffold(topBar = {
             TopAppBar() {
                 IconButton(onClick = requestMic) {
                     Icon(Icons.Filled.Phone)
+                }
+                IconButton(onClick = requestVideo) {
+                    Icon(Icons.Filled.Person)
                 }
             }
         }) {
@@ -66,6 +74,24 @@ fun MainScreen(viewModel: MainViewModel = MainViewModel(), requestMic: () -> Uni
                     otherCaller = viewModel.otherCaller,
                     isInCall = viewModel.isInCall
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(onClick = {
+                        viewModel.sipCLient.VideoCall(viewModel.secondUser.username, MainActivity.VIDEO_SCREEN_ID, act)
+                    }) {
+                        Text(text = "Call vid")
+                    }
+                    VideoScreen(
+                        modifier = Modifier.width(128.dp).height(128.dp)
+                            .background(color = Color.Blue)
+                    )
+                    Button(onClick = { viewModel.sipCLient.AcceptVideo(MainActivity.VIDEO_SCREEN_ID, act) }) {
+                        Text(text = "Answer")
+                    }
+                }
 
                 LogsZone(
                     logs = viewModel.logs,
@@ -188,6 +214,17 @@ fun Logs(
         scrollState.smoothScrollTo(logs.size.toFloat() * 100)
         resetNeedsToScroll()
     }
+}
+
+@Composable
+fun VideoScreen(modifier: Modifier = Modifier) {
+    val context = ContextAmbient.current
+    val video = remember {
+        FrameLayout(context).apply {
+            id = MainActivity.VIDEO_SCREEN_ID
+        }
+    }
+    AndroidView({ video }, modifier = modifier)
 }
 
 @Preview(showBackground = true)

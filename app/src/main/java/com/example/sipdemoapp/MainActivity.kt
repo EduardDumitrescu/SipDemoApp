@@ -4,12 +4,14 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.*
 import android.util.Log
+import android.view.View.generateViewId
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.setContent
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import kotlin.concurrent.thread
 
 
@@ -19,12 +21,16 @@ class MainActivity : AppCompatActivity() {
     var terminateNotifThread = false
     //var notifThread: GetNotificationsThread? = null
 
+    companion object {
+        val VIDEO_SCREEN_ID by lazy { generateViewId() }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.sipCLient.Init(applicationContext)
         listenForEvents()
         setContent {
-            MainScreen(viewModel = viewModel, requestMic = this::requestMicrophone)
+            MainScreen(viewModel = viewModel, requestMic = this::requestMicrophone, requestVideo = this::requestCamera)
         }
     }
 
@@ -40,15 +46,28 @@ class MainActivity : AppCompatActivity() {
                 1
             )
         }
+
+    }
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun requestCamera() {
+        if (ContextCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.CAMERA),
+                2
+            )
+        }
     }
 
     fun listenForEvents() {
         thread {
             while (!terminateNotifThread) {
                 try {
-                    var sipnotifications = ""
                     //get notifications from the SIP stack
-                    sipnotifications = viewModel.sipCLient.GetNotifications()
+                    val sipnotifications = viewModel.sipCLient.GetNotifications()
                     if (sipnotifications != null && sipnotifications!!.length > 0) {
                         // send notifications to Main thread using a Handler
                         val messageToMainThread = Message()

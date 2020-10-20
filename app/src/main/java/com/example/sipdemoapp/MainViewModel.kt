@@ -9,6 +9,9 @@ import com.mizuvoip.jvoip.SipStack
 class MainViewModel : ViewModel() {
     var currentUser by mutableStateOf(AJVOIP_USER)
         private set
+    var secondUser by mutableStateOf(SDK2_USER)
+        private set
+
 
     var logs by mutableStateOf(listOf<String>())
         private set
@@ -24,11 +27,12 @@ class MainViewModel : ViewModel() {
 
     private val parameters by lazy {
         mutableMapOf(
-            LOG_LEVEL to "5",
+            LOG_LEVEL to "1",
             SERVER_ADDRESS to "voip.mizu-voip.com",
             RTPSTAT to "-1",
             USERNAME to AJVOIP_USER.username,
-            PASSWORD to AJVOIP_USER.password
+            PASSWORD to AJVOIP_USER.password,
+            "video" to "1"
         )
     }
 
@@ -120,12 +124,14 @@ class MainViewModel : ViewModel() {
         parameters[USERNAME] = SDK2_USER.username
         parameters[PASSWORD] = SDK2_USER.password
         currentUser = SDK2_USER
+        secondUser = AJVOIP_USER
     }
 
     fun changeUserToAJVOIP() {
         parameters[USERNAME] = AJVOIP_USER.username
         parameters[PASSWORD] = AJVOIP_USER.password
         currentUser = AJVOIP_USER
+        secondUser = SDK2_USER
     }
 
     companion object {
